@@ -1,0 +1,271 @@
+<html>
+  <head>
+    <meta charset="utf-8"></meta>
+    <title>Social Media Viz</title>
+    <script type="text/javascript" src="./d3.min.js"></script>
+  </head>
+  <body>
+    <svg id="viz1" width="800" height="500"></svg>
+    <form id='selector'>
+      <select id="category" name='category'>
+        <option value="gender" selected="selected">Gender</option>
+        <option value="ethnicity">Ethnicity</option>
+        <option value="age">Age</option>
+        <option value="education">Education</option>
+        <option value="income">Income</option>
+        <option value="residence">Residence</option>
+      </select>
+      <select id="service" name='service'>
+        <option value="facebook" selected="selected">Facebook</option>
+        <option value="pinterest">Pinterest</option>
+        <option value="instagram">Instagram</option>
+        <option value="linkedin">Linkedin</option>
+        <option value="twitter">Twitter</option>
+      </select>
+      <input type="submit">
+    </form>
+    <svg id="viz2" width="800" height="500"></svg>
+    <form id='selector2'>
+      <select id="segment" name='segment'>
+        <option value="gender" selected="selected">Gender</option>
+        <option value="ethnicity">Ethnicity</option>
+        <option value="age">Age</option>
+        <option value="education">Education</option>
+        <option value="income">Income</option>
+        <option value="residence">Residence</option>
+      </select>
+      <input type="submit">
+    </form>
+  </body>
+  <script>
+  window.addEventListener("load",run);
+
+  function run() {
+    var form = document.getElementById('selector');
+    form.addEventListener('submit',function(ev){
+      ev.preventDefault();
+      var cat = document.getElementById('category');
+      var category = cat.options[cat.selectedIndex].value;
+      var srv = document.getElementById('service');
+      var service = srv.options[srv.selectedIndex].value;
+      makeView1({category:category, service:service})
+    })
+
+    var form2 = document.getElementById('selector2');
+    form2.addEventListener('submit',function(ev){
+      ev.preventDefault();
+      var cat = document.getElementById('segment');
+      var category = cat.options[cat.selectedIndex].value;
+      makeView2({category:category})
+    })
+  }
+
+  function makeView2(args) {
+    var svg = d3.select("#viz2");
+    svg.selectAll("*").remove();
+
+    var height = svg.attr("height");
+    var width = svg.attr("width");https://www.nfl.com/gamepass?icampaign=GP_GC_packages
+
+    var margin = 50;
+    var chartHeight = height - 2*margin;
+    var chartWidth = width - 2*margin;
+
+    var d = getData(args);
+    console.log(d);
+    var groupNums = (d.length)/5;
+
+    d.sort(function(a,b){
+      if (a.group === b.group) {
+        return 0;
+      } 
+      if (a.group > b.group) {
+        return 1;
+      }
+      if (a.group < b.group) {
+        return -1;
+      }
+    })
+    console.log(d, groupNums);
+    var grps = svg.selectAll("g").data(d).enter().append('g');
+
+    grps.append('rect').attr('class', 'box')
+    .attr('x', function(d,i){ return margin+Math.floor(i/5)*chartWidth/(groupNums)+i%5*chartWidth/(groupNums*6)})
+    .attr('y',  function(d) {return height-margin-(chartHeight*d.value/100);}).attr("height",function(d) { return chartHeight*d.value/100; })
+    .attr('width', chartWidth/(1.5*d.length))
+    .attr('fill', function(d){
+      switch(d.service){
+        case 'facebook':
+          return 'blue';
+          break;
+        case 'pinterest':
+          return 'red';
+          break;
+        case 'instagram':
+          return 'green';
+          break;
+        case 'linkedin':
+          return 'purple';
+          break;
+        case 'twitter':
+          return 'yellow';
+          break;
+      }
+    })
+
+    for (var i=0; i<groupNums; i++) {
+      svg.append('text').attr('x', margin+(i)*chartWidth/(groupNums)).attr('y', height-margin+20)
+      .attr("dy","0.3em")
+      .style("text-anchor","left")
+      .text(d[i*5].group);
+    }
+    var colors = ['blue', 'red', 'green', 'purple', 'yellow'];
+    for (var j=0; j<5; j++) {
+      svg.append('rect').attr('x', margin+j*chartWidth/6).attr('y', margin-5)
+      .attr('width', 10).attr('height',10)
+      .attr('fill',colors[j]);
+
+      svg.append('text').attr('x', margin+15+j*chartWidth/6).attr('y', margin)
+      .attr("dy","0.3em")
+      .style("text-anchor","left")
+      .text(d[j].service);
+    }
+  }
+
+  function makeView1(args) {
+    var svg = d3.select("#viz1");
+    svg.selectAll("*").remove();
+
+    var height = svg.attr("height");
+    var width = svg.attr("width");
+
+    var margin = 50;
+    var chartHeight = height - 2*margin;
+    var chartWidth = width - 2*margin;
+
+    var d = getData(args);
+    var num = d.length;
+    var grps = svg.selectAll("g").data(d).enter().append('g');
+
+    grps.append('circle').attr('class', 'bubble').attr("cx", function(d, i){return margin+(i+1)/(num+1)*chartWidth})
+    .attr('cy', margin+chartHeight/2).attr('r', function(d) {return 10*Math.sqrt(d.value/Math.PI)}).attr('fill', 'blue');
+
+    grps.append('text').attr('class', 'label').attr('x', function(d, i){return margin+(i+1)/(num+1)*chartWidth}).attr('y', margin+chartHeight/2).attr('dy', "0.3em").style('text-anchor', 'middle').text(function(d){return d.group});
+  }
+
+  function getData(args){
+    //args is an object with attributes: category, group, service. Empty object searches all
+    var data = [{category:"total", group:"all", service:"facebook", value:72},
+        {category:"gender", group:"men", service:"facebook", value:66},
+        {category:"gender", group:"women", service:"facebook", value:77},
+        {category:"ethnicity", group:"white,non-hispanic", service:"facebook", value:70},
+        {category:"ethnicity", group:"black,non-hispanic", service:"facebook", value:67},
+        {category:"ethnicity", group:"hispanic", service:"facebook", value:75},
+        {category:"age", group:"18-29", service:"facebook", value:82},
+        {category:"age", group:"30-49", service:"facebook", value:79},
+        {category:"age", group:"50-64", service:"facebook", value:64},
+        {category:"age", group:"65+", service:"facebook", value:48},
+        {category:"education", group:"high school grad or less", service:"facebook",value:71},
+        {category:"education", group:"some college", service:"facebook", value:72},
+        {category:"education", group:"college+", service:"facebook", value:72},
+        {category:"income", group:"less than $30,000", service:"facebook", value:73},
+        {category:"income", group:"$30,000-$49,999", service:"facebook", value:72},
+        {category:"income", group:"$50,000-$74,999", service:"facebook", value:66},
+        {category:"income", group:"$75,000+", service:"facebook", value:78},
+        {category:"residence", group:"urban", service:"facebook", value:74},
+        {category:"residence", group:"suburban", service:"facebook", value:72},
+        {category:"residence", group:"rural", service:"facebook", value:67},
+        {category:"total", group:"all", service:"pinterest", value:31},
+        {category:"gender", group:"men", service:"pinterest", value:16},
+        {category:"gender", group:"women", service:"pinterest", value:44},
+        {category:"ethnicity", group:"white,non-hispanic", service:"pinterest", value:32},
+        {category:"ethnicity", group:"black,non-hispanic", service:"pinterest", value:23},
+        {category:"ethnicity", group:"hispanic", service:"pinterest", value:32},
+        {category:"age", group:"18-29", service:"pinterest", value:37},
+        {category:"age", group:"30-49", service:"pinterest", value:36},
+        {category:"age", group:"50-64", service:"pinterest", value:24},
+        {category:"age", group:"65+", service:"pinterest", value:16},
+        {category:"education", group:"high school grad or less", service:"pinterest", value:25},
+        {category:"education", group:"some college", service:"pinterest", value:37},
+        {category:"education", group:"college+", service:"pinterest", value:31},
+        {category:"income", group:"less than $30,000", service:"pinterest", value:24},
+        {category:"income", group:"$30,000-$49,999", service:"pinterest", value:37},
+        {category:"income", group:"$50,000-$74,999", service:"pinterest", value:41},
+        {category:"income", group:"$75,000+", service:"pinterest", value:30},
+        {category:"residence", group:"urban", service:"pinterest", value:26},
+        {category:"residence", group:"suburban", service:"pinterest", value:34},
+        {category:"residence", group:"rural", service:"pinterest", value:31},
+        {category:"total", group:"all", service:"instagram", value:28},
+        {category:"gender", group:"men", service:"instagram", value:24},
+        {category:"gender", group:"women", service:"instagram", value:31},
+        {category:"ethnicity", group:"white,non-hispanic", service:"instagram", value:21},
+        {category:"ethnicity", group:"black,non-hispanic", service:"instagram", value:47},
+        {category:"ethnicity", group:"hispanic", service:"instagram", value:38},
+        {category:"age", group:"18-29", service:"instagram", value:55},
+        {category:"age", group:"30-49", service:"instagram", value:28},
+        {category:"age", group:"50-64", service:"instagram", value:11},
+        {category:"age", group:"65+", service:"instagram", value:4},
+        {category:"education", group:"high school grad or less", service:"instagram", value:25},
+        {category:"education", group:"some college", service:"instagram", value:32},
+        {category:"education", group:"college+", service:"instagram", value:26},
+        {category:"income", group:"less than $30,000", service:"instagram", value:26},
+        {category:"income", group:"$30,000-$49,999", service:"instagram", value:27},
+        {category:"income", group:"$50,000-$74,999", service:"instagram", value:30},
+        {category:"income", group:"75,000+", service:"instagram", value:26},
+        {category:"residence", group:"urban", service:"instagram", value:32},
+        {category:"residence", group:"suburban", service:"instagram", value:28},
+        {category:"residence", group:"rural", service:"instagram", value:18},
+        {category:"total", group:"all", service:"linkedin", value:25},
+        {category:"gender", group:"men", service:"linkedin", value:26},
+        {category:"gender", group:"women", service:"linkedin", value:25},
+        {category:"ethnicity", group:"white,non-hispanic", service:"linkedin", value:26},
+        {category:"ethnicity", group:"black,non-hispanic", service:"linkedin", value:22},
+        {category:"ethnicity", group:"hispanic", service:"linkedin", value:22},
+        {category:"age", group:"18-29", service:"linkedin", value:22},
+        {category:"age", group:"30-49", service:"linkedin", value:32},
+        {category:"age", group:"50-64", service:"linkedin", value:26},
+        {category:"age", group:"65+", service:"linkedin", value:12},
+        {category:"education", group:"high school grad or less", service:"linkedin", value:9},
+        {category:"education", group:"some college", service:"linkedin", value:25},
+        {category:"education", group:"college+", service:"linkedin", value:46},
+        {category:"income", group:"less than $30,000", service:"linkedin", value:17},
+        {category:"income", group:"$30,000-$49,999", service:"linkedin", value:21},
+        {category:"income", group:"$50,000-$74,999", service:"linkedin", value:32},
+        {category:"income", group:"$75,000+", service:"linkedin", value:41},
+        {category:"residence", group:"urban", service:"linkedin", value:30},
+        {category:"residence", group:"suburban", service:"linkedin", value:26},
+        {category:"residence", group:"rural", service:"linkedin", value:12},
+        {category:"total", group:"all", service:"twitter", value:23},
+        {category:"gender", group:"men", service:"twitter", value:25},
+        {category:"gender", group:"women", service:"twitter", value:21},
+        {category:"ethnicity", group:"white,non-hispanic", service:"twitter", value:20},
+        {category:"ethnicity", group:"black,non-hispanic", service:"twitter", value:28},
+        {category:"ethnicity", group:"hispanic", service:"twitter", value:28},
+        {category:"age", group:"18-29", service:"twitter", value:32},
+        {category:"age", group:"30-49", service:"twitter", value:29},
+        {category:"age", group:"50-64", service:"twitter", value:13},
+        {category:"age", group:"65+", service:"twitter", value:6},
+        {category:"education", group:"high school or less", service:"twitter", value:19},
+        {category:"education", group:"some college", service:"twitter", value:23},
+        {category:"education", group:"college+", service:"twitter", value:27},
+        {category:"income", group:"less than $30,000", service:"twitter", value:21},
+        {category:"income", group:"$30,000-$49,999", service:"twitter", value:19},
+        {category:"income", group:"$50,000-$74,999", service:"twitter", value:25},
+        {category:"income", group:"$75,000+", service:"twitter", value:26},
+        {category:"residence", group:"urban", service:"twitter", value:30},
+        {category:"residence", group:"suburban", service:"twitter", value:21},
+        {category:"residence", group:"rural", service:"twitter", value:15}];
+    if (!args) {
+      return data;
+    }
+
+    var cat = args.category || null;
+    var grp = args.group || null;
+    var srv = args.service || null;
+
+    return data.filter(function(element){
+      return ((element.category===cat || cat===null) && (element.group===grp || grp===null) && (element.service===srv || srv===null));
+    });
+  }
+  </script>
+</html>
