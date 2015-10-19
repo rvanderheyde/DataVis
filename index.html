@@ -150,7 +150,11 @@
     grps.append('circle').attr('class', 'bubble').attr("cx", function(d, i){return margin+(i+1)/(num+1)*chartWidth})
     .attr('cy', margin+chartHeight/2).attr('r', function(d) {return 10*Math.sqrt(d.value/Math.PI)}).attr('fill', 'blue');
 
-    grps.append('text').attr('class', 'label').attr('x', function(d, i){return margin+(i+1)/(num+1)*chartWidth}).attr('y', margin+chartHeight/2).attr('dy', "0.3em").style('text-anchor', 'middle').text(function(d){return d.group});
+    grps.append('text').attr('class', 'label').attr('x', function(d, i){return margin+(i+1)/(num+1)*chartWidth}).attr('y', margin+chartHeight/2).attr('dy', "0.3em").style('text-anchor', 'middle').text(function(d){return d.value});
+
+    grps.append('text').attr('x', function(d,i){return margin+(i+1)/(num+1)*chartWidth})
+    .attr('y', function(d) {return 10*Math.sqrt(d.value/Math.PI)+margin+chartHeight/2+20}).style('text-anchor', 'middle')
+    .text(function(d){return d.group});
   }
 
   function getData(args){
