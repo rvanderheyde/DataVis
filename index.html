@@ -65,14 +65,12 @@
     svg.selectAll("*").remove();
 
     var height = svg.attr("height");
-    var width = svg.attr("width");https://www.nfl.com/gamepass?icampaign=GP_GC_packages
+    var width = svg.attr("width");
 
     var margin = 50;
     var chartHeight = height - 2*margin;
     var chartWidth = width - 2*margin;
-
     var d = getData(args);
-    console.log(d);
     var groupNums = (d.length)/5;
 
     d.sort(function(a,b){
@@ -86,13 +84,13 @@
         return -1;
       }
     })
-    console.log(d, groupNums);
+    var barwidth = chartWidth/(1.5*d.length);
     var grps = svg.selectAll("g").data(d).enter().append('g');
 
     grps.append('rect').attr('class', 'box')
     .attr('x', function(d,i){ return margin+Math.floor(i/5)*chartWidth/(groupNums)+i%5*chartWidth/(groupNums*6)})
     .attr('y',  function(d) {return height-margin-(chartHeight*d.value/100);}).attr("height",function(d) { return chartHeight*d.value/100; })
-    .attr('width', chartWidth/(1.5*d.length))
+    .attr('width', barwidth)
     .attr('fill', function(d){
       switch(d.service){
         case 'facebook':
@@ -111,7 +109,12 @@
           return 'yellow';
           break;
       }
-    })
+    });
+
+    grps.append('text').attr('x', function(d,i){ return margin+0.5*barwidth+chartWidth*(Math.floor(i/5)*1/(groupNums)+i%5*1/(groupNums*6))})
+    .attr('y', function(d) {return height-margin-(chartHeight*d.value/100)-20;})
+    .style('text-anchor', 'middle')
+    .text(function(d){return d.value;});
 
     for (var i=0; i<groupNums; i++) {
       svg.append('text').attr('x', margin+(i)*chartWidth/(groupNums)).attr('y', height-margin+20)
